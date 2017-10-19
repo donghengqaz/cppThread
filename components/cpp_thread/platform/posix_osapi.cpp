@@ -20,6 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+#ifdef CONFIG_USING_POSIX
 
 #include <cstdint>
 #include <cstdio>
@@ -62,6 +63,11 @@ int _thread_deinit(estd::_thread_t *tid)
 {
 	*tid = 0;
 	return 0;
+}
+
+int _thread_exit(void)
+{
+    return 0;
 }
 
 int _thread_create(estd::_thread_t *tid, void *(*entry)(void *), void *arg, size_t stack_bytes, size_t priority)
@@ -343,4 +349,6 @@ bool _socket_selected()
 	return true;
 }
 
-};
+}; // namespace estd
+
+#endif // CONFIG_USING_POSIX

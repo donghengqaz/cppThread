@@ -20,44 +20,32 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#ifndef _FREERTOS_HPP_
-#define _FREERTOS_HPP_
-
-#include <cstdio>
-#include <cmath>
-#include <cstdint>
-#include <cstring>
-
-#include "sys/types.hpp"
-
-#include <sys/errno.h>
-#include <unistd.h>
-#include <sys/socket.h>
-#include <arpa/inet.h>
-#include <netdb.h>
-
-#include "freertos/FreeRTOSConfig.h"
-#include "freertos/FreeRTOS.h"
-#include "freertos/queue.h"
-#include "freertos/task.h"
-#include "freertos/semphr.h"
+#include "sys/osapi.hpp"
+#include "mutex.hpp"
 
 namespace estd {
-    /**
-     * time
-     */
-    const time_t max_time = static_cast<time_t>(portMAX_DELAY * portTICK_PERIOD_MS / 1000); //1.79769313486231570E+308 ?
-    const time_t min_time = 0;
 
-    /**
-     * thread
-     */
-#ifdef CONFIG_THREAD_TMPL_DEFAULT_ARGS
-    const std::size_t default_priority = 2;
-    const std::size_t default_stk_size = 8192;
-#endif
+mutex::mutex(bool recursived)
+{
+    _mutex_init(&_id);
+    if (_mutex_create(&_id, recursived))
+        throw std::logic_error("mutex low-level constructor fails");
+    set_recursived(recursived);
+}
 
-    using ssize_t = int;
-}; // estd
+mutex::~mutex()
+{
+    _mutex_destroy(&_id);
+}
 
-#endif /* _FREERTOS_HPP_ */
+bool mutex::lock(estd::time_t t)
+{
+    return _mutex_lock(&_id, t, recursived()) == 0 ? true : false;
+}
+
+void mutex::unlock() 
+{
+    _mutex_unlock(&_id, recursived());
+}
+
+}; // namespace estd

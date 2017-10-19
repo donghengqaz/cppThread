@@ -32,7 +32,7 @@
 #include <memory>
 #include <stdexcept>
 
-#include "arch/arch.hpp"
+#include "sys/sys.hpp"
 #include "sys/osapi.hpp"
 
 namespace estd
@@ -50,26 +50,15 @@ namespace estd
     class thread
     {
     public:
-        thread()
-        {
-        	_thread_init(&_id);
-        }
-
         template<typename Func, typename... Args>
-        thread(Func&& f, Args&&... args) : thread()
-        {
-            _start_thread(_make_routine(std::bind(std::forward<Func>(f),
-                                                  std::forward<Args>(args)...),
-                                        &_id));
-        }
+        thread(Func&& f, Args&&... args);
 
-        ~thread()
-        { if (_id) _thread_destroy(&_id); }
+        ~thread();
 
     private:
         const std::size_t _priority = Priority;
         const std::size_t _stk_size = Stk_size;
-        estd::_thread_t _id;
+        estd::_thread_t   _id;
 
         struct _base_tmpl
         {
@@ -88,48 +77,22 @@ namespace estd
         public:
             _func_tmpl(Func &&f, estd::_thread_t *tid) : _func(std::forward<Func>(f)), _tid(tid) { }
 
-            void start() {
-                _func();
-            }
+            void start();
 
-            void exit() {
-            	_thread_deinit(_tid);
-            }
+            void exit();
         };
 
-        static void *_base_thread(void *p)
-        {
-        	_thread_ref_take();
-            std::shared_ptr<struct _base_tmpl> tp((struct _base_tmpl *)p);
-
-            try {
-                tp.get()->start();
-            } catch (std::exception &e) {
-                std::cout << e.what() << std::endl;
-            }
-
-            tp.get()->exit();
-            _thread_ref_release();
-
-            return NULL;
-        }
-
         template<typename Func>
-        _func_tmpl<Func> *_make_routine(Func &&f, estd::_thread_t *tid)
-        {
-        	return new _func_tmpl<Func>(std::forward<Func>(f), tid);
-        }
+        _func_tmpl<Func> *_make_routine(Func &&f, estd::_thread_t *tid);
 
-        void _start_thread(struct _base_tmpl *p)
-        {
-            if (!p || _thread_create(&_id, _base_thread, p, _stk_size, _priority)) {
-                delete p;
-                throw std::logic_error("thread low-level constructor fails");
-            }
-        }
+        static void *_base_thread(void *p);
+
+        void _start_thread(struct _base_tmpl *p);
     }; // thread
 
     estd::time_t sleep(estd::time_t t);
+
+#include "../library/thread.cc"
 };
 
 #endif /* c++11 */

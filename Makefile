@@ -1,4 +1,4 @@
-ifneq ($(ESTD_SDK), freertos)
+ifneq ($(ESTD_SDK), ESP32)
 
 BD_DIR:=build_posix
 

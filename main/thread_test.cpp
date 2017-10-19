@@ -67,7 +67,7 @@ void te3(estd::time_t t)
         rl += s6;
         rl += s0;
 
-        s6.listen(16);
+        s6.listen(1);
         s6.fcntl(true, O_NONBLOCK);
 
         while (1) {

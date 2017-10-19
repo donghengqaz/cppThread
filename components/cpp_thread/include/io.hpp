@@ -31,7 +31,7 @@
 #include <algorithm>
 #include <tuple>
 
-#include "arch/arch.hpp"
+#include "sys/sys.hpp"
 
 namespace estd
 {
@@ -59,112 +59,40 @@ namespace estd
         iolist() { }
         ~iolist() { }
 
-        size_type size()
-        { return list.size(); }
+        size_type size();
 
-        iterator begin()
-        {
-            if (!list.size()) return NULL;
-            return list[0];
-        }
+        iterator begin();
 
-        iterator end()
-        {
-            if (!list.size()) return NULL;
-            return list[list.size() - 1] + 1;
-        }
+        iterator end();
 
-        fd_set poll(int mode)
-        {
-            fd_set pfd;
-            FD_ZERO(&pfd);
-            for (auto c : list) {
-                if (c->selected())
-                    FD_SET(c->fd(), &pfd);
-                if (c->poll(true, mode))
-                    throw std::make_tuple(mode, c->fd());
-            }
-            return pfd;
-        }
+        fd_set poll(int mode);
 
-        int max_fd()
-        {
-            int maxfd = 0;
-            for (auto &c : list)
-                maxfd = std::max(maxfd, c->fd());
-            return maxfd;
-        }
+        int max_fd();
 
-        void clear()
-        {
-        	list.clear();
-        }
+        void clear();
 
-        void copy(iolist& to)
-        {
-        	for (auto i : list)
-        		to.add(i);
-        }
+        void copy(iolist& to);
 
-        void operator +=(reference io)
-        {
-        	add(io);
-        }
+        void operator +=(reference io);
 
-        void operator -=(reference io)
-        {
-        	rm(&io);
-        }
+        void operator -=(reference io);
 
-        void operator +=(pointer io)
-        {
-        	add(io);
-        }
+        void operator +=(pointer io);
 
-        void operator -=(pointer io)
-        {
-        	rm(io);
-        }
+        void operator -=(pointer io);
 
-        iolist operator &(fd_set &pfd)
-        {
-            iolist l;
-            for (auto c : list) {
-                if (FD_ISSET(c->fd(), &pfd)) {
-                    l += c;
-                }
-                c->poll(false, estd::POLL_NONE);
-            }
-            return l;
-        }
+        iolist operator &(fd_set &pfd);
 
-        iolist& operator =(iolist& others)
-        {
-            clear();
-            others.copy(*this);
-            return *this;
-        }
+        iolist& operator =(iolist& others);
 
     private:
-        void add(reference io)
-        {
-        	add(&io);
-        }
+        void add(reference io);
 
-        void add(pointer io)
-        {
-        	list.push_back(io);
-        }
+        void add(pointer io);
 
-        void rm(reference io)
-        {
-        	rm(&io);
-        }
+        void rm(reference io);
 
-        void rm(pointer io)
-        {
-        	list.erase(std::find(list.begin(), list.end(), io));
-        }
+        void rm(pointer io);
 
         std::vector<class _io_base *> list;
     };

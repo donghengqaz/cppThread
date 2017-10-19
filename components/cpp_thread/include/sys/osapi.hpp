@@ -17,6 +17,8 @@ namespace estd {
 
 	int _thread_deinit(estd::_thread_t *tid);
 
+	int _thread_exit(void);
+
 	int _thread_create(estd::_thread_t *tid, void *(*entry)(void *), void *arg, size_t stack_bytes, size_t priority);
 
 	int _thread_destroy(estd::_thread_t *id);

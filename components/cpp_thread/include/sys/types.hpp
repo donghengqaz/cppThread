@@ -63,34 +63,17 @@ namespace estd
     class iobytes 
     {
     public:
-        iobytes()
-        {
-            _ret = 0;
-        }
+        iobytes();
 
-        iobytes(char *p, int ret)
-        {
-            _pbuf = std::unique_ptr<char>(p);
-            _ret = ret;
-        }
+        iobytes(char *p, int ret);
 
-        iobytes(std::unique_ptr<char> &p, int ret)
-        {
-            _pbuf = std::move(p);
-            _ret = ret;
-        }
+        iobytes(std::unique_ptr<char> &p, int ret);
 
-        ~iobytes() { }
+        ~iobytes();
 
-        int size()
-        {
-            return _ret;
-        }
+        int size();
 
-        char *data()
-        {
-            return _pbuf.get();
-        }
+        char *data();
 
     private:
         std::shared_ptr<char> _pbuf;
@@ -106,6 +89,14 @@ namespace estd
     public:
         virtual bool lock(estd::time_t t) = 0;
         virtual void unlock() = 0;
+
+    protected:
+        void set_recursived(bool recursived);
+
+        bool recursived();
+
+    private:
+        bool _recursived;
     }; // _lock_base
 
     class _io_base 
@@ -116,10 +107,10 @@ namespace estd
         virtual bool fcntl(bool add, int &flag) = 0;
         virtual bool fcntl(bool add, const int &val) = 0;
 
-        virtual ssize_t read(void *pbuf, size_t n = -1) = 0;
+        virtual int read(void *pbuf, std::size_t n = -1) = 0;
 
-        virtual ssize_t write(const void *pbuf, size_t n) = 0;
-        virtual ssize_t write(std::string s) = 0;
+        virtual int write(const void *pbuf, std::size_t n) = 0;
+        virtual int write(std::string s) = 0;
 
         virtual int type() = 0;
         
@@ -129,56 +120,25 @@ namespace estd
 
         virtual bool close() = 0;
 
-        virtual bool fcntl(bool add, int &&flag)
-        {
-            int _ff = std::forward<int>(flag);
-            return fcntl(add, _ff);
-        }
+        virtual bool fcntl(bool add, int &&flag);
 
-        virtual class iobytes read(size_t n = 0)
-        {
-            n = default_pdu_size(n);
-            std::unique_ptr<char> p(new char[n + 1]);
-            int ret = read(p.get(), n);
-            return iobytes(p, ret);
-        }
+        virtual class iobytes read(size_t n = 0);
 
-        virtual int fd()
-        {
-            return _fd;
-        }
+        virtual int fd();
 
-        virtual int move()
-        {
-            int tmp = _fd;
-            _fd = -1;
-            return tmp;
-        }
+        virtual int move();
 
-        virtual bool operator ==(class _io_base &other)
-        {
-            return this->fd() == other.fd() ? true : false;
-        }
+        virtual bool operator ==(class _io_base &other);
 
-        virtual void operator =(class _io_base &other)
-        {
-            if (this->_fd >= 0)
-                close();
-            this->_fd = other.move();
-        }
+        virtual void operator =(class _io_base &other);
 
     protected:
         int _fd;
 
-        size_t _default_pdu_bytes; // TCP:1460, UDP:1472
+        std::size_t _default_pdu_bytes; // TCP:1460, UDP:1472
         
     private:
-        size_t default_pdu_size(size_t n) 
-        {
-            if (!n)
-                n = _default_pdu_bytes;
-            return n;
-        }
+        std::size_t default_pdu_size(std::size_t n);
     }; // _io_base
 };
 

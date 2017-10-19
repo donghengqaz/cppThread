@@ -31,7 +31,7 @@
 #include <stdexcept>
 #include <memory>
 
-#include "arch/arch.hpp"
+#include "sys/sys.hpp"
 #include "sys/osapi.hpp"
 
 namespace estd 
@@ -41,93 +41,46 @@ namespace estd
     class message : public _io_base 
     {
     public:
-        message()
-        {
-            estd::_message_init(&_fd);
-            if (_message_create(&_fd, _deepth, _length))
-                throw std::logic_error("message low-level constructor fails");
-            _default_pdu_bytes = _length + 1;
-        }
+        message();
 
-        ~message() 
-        {
-            _message_destroy(&_fd);
-        }
+        ~message();
 
-        bool recv(Type &p, estd::time_t t = estd::max_time) 
-        {
-            return _message_recv(&_fd, (char *)&p, _length, t) == 0 ? true : false;
-        }
+        bool recv(Type &p, estd::time_t t = estd::max_time);
 
-        bool send(Type &p) 
-        {
-            return _message_send(&_fd, (const char *)&p, _length) == 0 ? true : false;
-        }
+        bool send(Type &p);
 
-        bool send(Type &&p) 
-        {
-            Type pp = std::forward<Type>(p);
-            return _message_send(&_fd, (const char *)&pp, _length) == 0 ? true : false;
-        }
+        bool send(Type &&p);
 
         /*
          * IO base
          **/
-        bool open(std::string s) 
-        {
-            return false;
-        }
+        bool open(std::string s);
         
-        bool fcntl(bool add, int& flag)
-        {
-            return false;
-        }
+        bool fcntl(bool add, int& flag);
         
-        bool fcntl(bool add, const int& val)
-        {
-            return false;
-        }
+        bool fcntl(bool add, const int& val);
 
-        ssize_t read(void *pbuf, std::size_t n = 0)
-        {
-            return _message_recv(&_fd, (char *)pbuf, _length, estd::max_time) == 0 ? _length : -1;
-        }
+        ssize_t read(void *pbuf, std::size_t n = 0);
 
-        ssize_t write(const void *pbuf, std::size_t n)
-        {
-            return _message_send(&_fd, (const char *)pbuf, _length) == 0 ? _length : -1;
-        }
+        ssize_t write(const void *pbuf, std::size_t n);
 
-        virtual ssize_t write(std::string s)
-        {
-            return write(s.c_str(), s.size() + 1);
-        }
+        ssize_t write(std::string s);
 
-        bool close()
-        {
-            return false;
-        }
+        bool close();
 
-        int poll(bool enter, int mode)
-        {
-            return _message_poll(&_fd, enter, mode);
-        }
+        int poll(bool enter, int mode);
 
-        int type()
-        {
-            return IO_MESSAGE;
-        }
+        int type();
 
-        bool selected()
-        {
-            return _message_selected();
-        }
+        bool selected();
 
     private:
         const int default_priority = 1;
         static const std::size_t _deepth = Deepth;
         static const std::size_t _length = sizeof(Type);
     };
+
+#include "../library/message.cc"
 
 }; // estd
 

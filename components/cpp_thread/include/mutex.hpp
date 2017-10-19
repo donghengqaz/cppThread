@@ -30,39 +30,23 @@
 #include <functional>
 #include <stdexcept>
 
-#include "arch/arch.hpp"
-#include "sys/osapi.hpp"
+#include "sys/sys.hpp"
 
 namespace estd 
 {
 
-    class mutex : public estd::_lock_base  
+    class mutex : private estd::_lock_base  
     {
     public:
-        mutex(bool recursived = false) : _recursived(recursived) 
-        {
-            _mutex_init(&_id);
-            if (_mutex_create(&_id, _recursived))
-                throw std::logic_error("mutex low-level constructor fails");
-        }
+        mutex(bool recursived = false);
 
-        ~mutex()
-        {
-            _mutex_destroy(&_id);
-        }
+        ~mutex();
 
-        bool lock(estd::time_t t = estd::max_time)
-        {
-            return _mutex_lock(&_id, t, _recursived) == 0 ? true : false;
-        }
+        bool lock(estd::time_t t = estd::max_time);
 
-        void unlock() 
-        {
-            _mutex_unlock(&_id, _recursived);
-        }
+        void unlock();
 
     private:
-        bool            _recursived;
         estd::_mutex_t  _id;
     }; // mutex
 

@@ -20,44 +20,15 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#ifndef _FREERTOS_HPP_
-#define _FREERTOS_HPP_
+#ifndef _SYS_HPP_
+#define _SYS_HPP_
 
-#include <cstdio>
-#include <cmath>
-#include <cstdint>
-#include <cstring>
+#if __cplusplus < 201103L
+#error "need c++11 or higher"
+#else
 
-#include "sys/types.hpp"
+#include "arch/arch.hpp"
 
-#include <sys/errno.h>
-#include <unistd.h>
-#include <sys/socket.h>
-#include <arpa/inet.h>
-#include <netdb.h>
+#endif /* c++11 */
 
-#include "freertos/FreeRTOSConfig.h"
-#include "freertos/FreeRTOS.h"
-#include "freertos/queue.h"
-#include "freertos/task.h"
-#include "freertos/semphr.h"
-
-namespace estd {
-    /**
-     * time
-     */
-    const time_t max_time = static_cast<time_t>(portMAX_DELAY * portTICK_PERIOD_MS / 1000); //1.79769313486231570E+308 ?
-    const time_t min_time = 0;
-
-    /**
-     * thread
-     */
-#ifdef CONFIG_THREAD_TMPL_DEFAULT_ARGS
-    const std::size_t default_priority = 2;
-    const std::size_t default_stk_size = 8192;
-#endif
-
-    using ssize_t = int;
-}; // estd
-
-#endif /* _FREERTOS_HPP_ */
+#endif /* _SYS_HPP_ */

@@ -27,6 +27,114 @@
 
 namespace estd {
 
+iolist::size_type iolist::size()
+{
+    return list.size();
+}
+
+iolist::iterator iolist::begin()
+{
+    if (!list.size()) return NULL;
+    return list[0];
+}
+
+iolist::iterator iolist::end()
+{
+    if (!list.size()) return NULL;
+    return list[list.size() - 1] + 1;
+}
+
+fd_set iolist::poll(int mode)
+{
+    fd_set pfd;
+    FD_ZERO(&pfd);
+    for (auto c : list) {
+        if (c->selected())
+            FD_SET(c->fd(), &pfd);
+        if (c->poll(true, mode))
+            throw std::make_tuple(mode, c->fd());
+    }
+    return pfd;
+}
+
+int iolist::max_fd()
+{
+    int maxfd = 0;
+    for (auto &c : list)
+        maxfd = std::max(maxfd, c->fd());
+    return maxfd;
+}
+
+void iolist::clear()
+{
+    list.clear();
+}
+
+void iolist::copy(iolist& to)
+{
+    for (auto i : list)
+        to.add(i);
+}
+
+void iolist::operator +=(reference io)
+{
+    add(io);
+}
+
+void iolist::operator -=(reference io)
+{
+    rm(&io);
+}
+
+void iolist::operator +=(pointer io)
+{
+    add(io);
+}
+
+void iolist::operator -=(pointer io)
+{
+    rm(io);
+}
+
+iolist iolist::operator &(fd_set &pfd)
+{
+    iolist l;
+    for (auto c : list) {
+        if (FD_ISSET(c->fd(), &pfd)) {
+            l += c;
+        }
+        c->poll(false, estd::POLL_NONE);
+    }
+    return l;
+}
+
+iolist& iolist::operator =(iolist& others)
+{
+    clear();
+    others.copy(*this);
+    return *this;
+}
+
+void iolist::add(reference io)
+{
+    add(&io);
+}
+
+void iolist::add(pointer io)
+{
+    list.push_back(io);
+}
+
+void iolist::rm(reference io)
+{
+    rm(&io);
+}
+
+void iolist::rm(pointer io)
+{
+    list.erase(std::find(list.begin(), list.end(), io));
+}
+
 select_t select(class iolist &rlist, class iolist &wlist, class iolist &elist, estd::time_t t)
 {
     fd_set rfd;
@@ -73,5 +181,4 @@ select_t select(class iolist &rlist, class iolist &wlist, class iolist &elist, e
     return std::make_tuple(ret, rlist & rfd, wlist & wfd, elist & efd);
 }
 
-};
-
+}; // namespace estd
